@@ -30,6 +30,6 @@
 *.exe
 *.out
 *.app
-# build directory
+# cmake build dirctories
 build/*
 tiles/tests/build/*
