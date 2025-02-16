@@ -1,0 +1,25 @@
+name: Tests
+on: [push, pull_request]
+jobs:
+  msvc:
+    strategy:
+      matrix:
+        version: [14.29, ""]
+      fail-fast: false
+    name: "MSVC ${{ matrix.version }} (C++20)"
+    runs-on: windows-2022
+    defaults:
+      run:
+        working-directory: ./app
+    steps:
+      - name: Add MSVC ${{ matrix.version }} to PATH
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: ${{ matrix.version }}
+      - name: "Install CMake"
+        run: choco install cmake
+      - uses: actions/checkout@v2
+      - name: "Configure"
+        run: cmake -S . -B build
+      - name: "Build"
+        run: cmake --build build --verbose
