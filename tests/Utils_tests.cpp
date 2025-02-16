@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "Utils.hpp"
+#include "tiles/Utils.hpp"
 
 
 TEST_CASE( "LatLongToTileNum min lat min long", "[geo]" ) {

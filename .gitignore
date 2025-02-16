@@ -32,4 +32,4 @@
 *.app
 # cmake build dirctories
 build/*
-tiles/tests/build/*
+tests/build/*
