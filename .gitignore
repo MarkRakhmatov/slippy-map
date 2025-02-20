@@ -33,3 +33,4 @@
 # cmake build dirctories
 build/*
 tests/build/*
+.vscode/*

@@ -2,6 +2,8 @@
 #include <numbers>
 #include <cmath>
 
+#include "Utils.hpp"
+
 
 int long2tilex(double lon, int z) 
 { 
@@ -28,12 +30,15 @@ double tiley2lat(int y, int z)
 namespace geo
 {
     std::tuple<int32_t, int32_t> LatLongToTileNum(float lat, float lon, int zoom) {
+        auto [x, y] = LatLongToTileNumF(lat, lon, zoom);
+
+        return {static_cast<int32_t>(x), static_cast<int32_t>(y)};
+    }
+    std::tuple<float, float> LatLongToTileNumF(float lat, float lon, int zoom) {
         int n = 1 << zoom;
-        int32_t xtile = static_cast<int32_t>(n * ((lon + 180) / 360.0f));
+        float xtile = n * ((lon + 180) / 360.0f);
         float lat_rad = lat*std::numbers::pi_v<float>/180.0f;
-        int32_t ytile = static_cast<int32_t>(
-            floor((1.0 - asinh(tan(lat_rad)) / std::numbers::pi_v<float>) / 2.0f * n)
-        );
-        return std::tuple<int32_t, int32_t>(xtile, ytile);
+        float ytile = (1.0f - asinh(tan(lat_rad)) / std::numbers::pi_v<float>) / 2.0f * n;
+        return std::tuple<float, float>(xtile, ytile);
     }
 }
