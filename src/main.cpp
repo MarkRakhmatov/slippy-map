@@ -10,11 +10,25 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <curl/curl.h>
 
 #include "tiles/Utils.hpp"
 #include "tiles/Tile.hpp"
+#include "tiles/TileDownloader.hpp"
 #include <SDL3_image/SDL_image.h>
+#include <memory>
+#include <thread>
+#include <chrono>
+
+using SDLSurfaceGuard = std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)>;
+
+SDLSurfaceGuard makeSDLSurfaceGuard(SDL_Surface* surface) {
+    return SDLSurfaceGuard(surface, SDL_DestroySurface);
+}
+
+struct SDLTile {
+    geo::Tile tile;
+    SDLSurfaceGuard surface;
+};
 
 inline int mod(int x, int div){
 	x %= div;
@@ -30,17 +44,21 @@ std::tuple<int32_t, int32_t> LatLongToPxOffset(float lat, float lng, int zoom, i
     return {offsetx, offsety};
 }
 
-void renderTiles(SDL_Surface *screen, const std::vector<geo::Tile>& tiles, int offsetx, int offsety, int tilesize, int zoom) {
-    for (auto tile: tiles) {
-        SDL_Rect dest{tile.x * tilesize - offsetx, tile.y * tilesize - offsety, tilesize, tilesize};
-        while(dest.x <= -tilesize){
-            dest.x += (1 << zoom) * tilesize;
-        }
+void renderTile(SDL_Surface *screen, SDLTile& sdlTile, int offsetx, int offsety, int tilesize) {
+    const auto& tile = sdlTile.tile;
+    SDL_Rect dest{tile.x * tilesize - offsetx, tile.y * tilesize - offsety, tilesize, tilesize};
+    while(dest.x <= -tilesize){
+        dest.x += (1 << tile.z) * tilesize;
+    }
+    if (sdlTile.surface) {
+        SDL_BlitSurface(sdlTile.surface.get(), NULL, screen, &dest);
+    } else {
         SDL_FillSurfaceRect(
             screen,
             &dest,
             SDL_MapRGB(SDL_GetPixelFormatDetails(screen->format),
-            SDL_GetSurfacePalette(screen), 255, 255, 255));
+            SDL_GetSurfacePalette(screen), 255, 255, 255)
+        );
     }
 }
 
@@ -80,64 +98,6 @@ TilesBounds getWindowBounds(int offsetPixX, int offsetPixY, int width, int heigh
     };
 }
 
-size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp){
-	std::vector<uint8_t>* mem = (std::vector<uint8_t>*)userp;
-    mem->resize(size * nmemb);
-    memcpy(static_cast<void *>(mem->data()), contents, size * nmemb);
-    return mem->size();
-}
-
-
-
-class CURLTileDownloader {
-public:
-    CURLTileDownloader(std::string url)
-    : mUrl(url), mCurlMultiHandle(curl_multi_init()){
-
-    }
-    void Download() {
-        CURL* curl = curl_easy_init();
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "slippy-map/1.0");
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        
-        mCurlToData[curl] = std::vector<uint8_t>{};
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&mCurlToData[curl]);
-        curl_easy_setopt(curl, CURLOPT_URL, mUrl.c_str());
-        curl_multi_add_handle(mCurlMultiHandle, curl);
-    }
-
-    int work(){
-        int msgs_left = 0;
-        CURLMsg *msg{};
-        int still_running;
-        curl_multi_perform(mCurlMultiHandle, &still_running);
-        while((msg = curl_multi_info_read(mCurlMultiHandle, &msgs_left))){
-            if(msg->msg == CURLMSG_DONE){
-                if(msg->easy_handle){
-                    if(msg->data.result){
-                        SDL_Log("Error loading '%s': %s\n", mUrl.c_str(), curl_easy_strerror(msg->data.result));
-                    }else{
-                        auto& data = mCurlToData[msg->easy_handle];
-                        SDL_Surface *img = IMG_Load_IO(SDL_IOFromMem(static_cast<void*>(data.data()), data.size()), true);
-                        if (!img) {
-                            SDL_Log("Tile::load image is not loaded");
-                        }
-                    }
-                    curl_multi_remove_handle(mCurlMultiHandle, msg->easy_handle);
-                    curl_easy_cleanup(msg->easy_handle);
-                    break;
-                }
-            }
-        }
-        return still_running;
-    }
-private:
-    std::string mUrl;
-    CURLM* mCurlMultiHandle;
-    std::unordered_map<CURL*, std::vector<uint8_t>> mCurlToData;
-};
-
 
 int main(int, char*[]) {
 	if(!SDL_Init(SDL_INIT_VIDEO)){
@@ -145,7 +105,7 @@ int main(int, char*[]) {
 		exit(-1);
 	}
 	int width = 1200, height = 800;
-	SDL_Window* window = SDL_CreateWindow("slippymap", width, height, SDL_WINDOW_RESIZABLE);
+	SDL_Window* window = SDL_CreateWindow("slippy-map", width, height, SDL_WINDOW_RESIZABLE);
 
 	SDL_Surface *screen = SDL_GetWindowSurface(window);
     int zoom = 12;
@@ -155,9 +115,38 @@ int main(int, char*[]) {
     auto bounds = getWindowBounds(offsetPixX, offsetPixY, width, height, tilesize, zoom);
 
     std::vector<geo::Tile> tiles = boundsToTiles(bounds.minx, bounds.maxx, bounds.miny, bounds.maxy, zoom);
+    geo::TileDownloader tileDownloader;
 
-    renderTiles(screen, tiles, offsetPixX, offsetPixY, tilesize, zoom);
+    for (const auto& tile: tiles) {
+        tileDownloader.Schedule(tile);
+    }
+    
+    auto tileWithBufferCb = [screen, offsetPixX, offsetPixY](TileWithBuffer& tileWithBuffer) {
+        auto surface = IMG_Load_IO(
+            SDL_IOFromMem(
+                static_cast<void*>(tileWithBuffer.data.data()),
+                tileWithBuffer.data.size()
+            ),
+            true
+        );
+        if (!surface) {
+            SDL_Log("Tile::load image is not loaded");
+        }
+        else {
+            auto sdTile = SDLTile{
+                tileWithBuffer.tile,
+                makeSDLSurfaceGuard(
+                    surface
+                )
+            };
+            renderTile(screen, sdTile, offsetPixX, offsetPixY, tilesize);
+        }
+    };
 
-	SDL_UpdateWindowSurface(window);
+    int still_running = 1;
+    while (still_running) {
+        tileDownloader.GetDownloaded(still_running, tileWithBufferCb); 
+    }
+    SDL_UpdateWindowSurface(window);
 	return 0;
 }

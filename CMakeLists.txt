@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 
 # set the project name
 project(slippy-map)
@@ -79,7 +79,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(CURL)
 
 # add the executable
-add_executable(slippy-map src/main.cpp src/tiles/Utils.cpp)
+add_executable(slippy-map)
+
+add_subdirectory(src)
 
 if(MSVC)
   target_compile_options(slippy-map PRIVATE /W4 /WX)
