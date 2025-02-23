@@ -19,42 +19,6 @@ std::tuple<int32_t, int32_t> LatLongToPxOffset(float lat, float lng, int zoom, i
     return {offsetx, offsety};
 }
 
-std::vector<geo::Tile> boundsToTiles(int minx, int maxx, int miny, int maxy, int zoom) {
-    std::vector<geo::Tile> tiles;
-    tiles.reserve((maxx-minx)*(maxy-miny));
-    for(auto x = minx; x < maxx; ++x) {
-        for (auto y = miny; y < maxy; ++y) {
-            tiles.emplace_back(x, y, zoom);
-        }
-    }
-    return tiles;
-}
-
-struct TilesBounds {
-    int32_t minx;
-    int32_t miny;
-    int32_t maxx;
-    int32_t maxy;
-};
-
-TilesBounds getWindowBounds(int offsetPixX, int offsetPixY, int width, int height, int tilesize, int zoom) {
-    int maxOffsetY = (1 << zoom) * tilesize - height;
-	if(offsetPixY < 0)
-		offsetPixY = 0;
-	else if(offsetPixY > maxOffsetY)
-        offsetPixY = maxOffsetY;
-
-	/* Make our x offset loop back around*/
-	offsetPixX = mod(offsetPixX, tilesize * (1 << zoom));
-
-    return TilesBounds{
-        offsetPixX / tilesize,
-        offsetPixY / tilesize,
-        (offsetPixX + width) / tilesize + 1,
-        (offsetPixY + height) / tilesize + 1
-    };
-}
-
 namespace geo
 {
 MapView::MapView(int width, int height, int zoom)
@@ -63,7 +27,6 @@ MapView::MapView(int width, int height, int zoom)
     m_zoom(zoom)
 {
 	resize(width, height);
-	updateBounds();
 }
 void MapView::setCenterCoords(float lat, float lng)
 {
@@ -110,9 +73,25 @@ void MapView::resize(int width, int height)
 	m_width = width;
 	m_height = height;
 }
-void MapView::updateBounds()
+void MapView::updateBounds() noexcept
 {
-    auto bounds = getWindowBounds(m_offsetx, m_offsety, m_width, m_height, g_tilesize, m_zoom);
-    m_zoomToTiles[m_zoom] = boundsToTiles(bounds.minx, bounds.maxx, bounds.miny, bounds.maxy, m_zoom);
+    int maxOffsetY = (1 << m_zoom) * g_tilesize - m_height;
+	if(m_offsety < 0)
+		m_offsety = 0;
+	else if(m_offsety > maxOffsetY)
+        m_offsety = maxOffsetY;
+
+	/* Make our x offset loop back around*/
+	m_offsetx = mod(m_offsetx, g_tilesize * (1 << m_zoom));
+}
+TilesBounds MapView::getBounds() const noexcept
+{
+    return geo::TilesBounds{
+        m_offsetx / g_tilesize,
+        m_offsety / g_tilesize,
+        (m_offsetx + m_width) / g_tilesize  + 1,
+        (m_offsety + m_height) / g_tilesize + 1,
+		m_zoom
+    };
 }
 }

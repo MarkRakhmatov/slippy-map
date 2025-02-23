@@ -51,9 +51,9 @@ void TileDownloader::GetDownloaded(int &still_running, TileHandlerCB tileHandler
                 } else {
                     tileHandler(tileWithBuffer);
 
+                    mCurlToData.erase(msg->easy_handle);
                     curl_multi_remove_handle(mCurlMultiHandle.get(), msg->easy_handle);
                     curl_easy_cleanup(msg->easy_handle);
-                    mCurlToData.erase(msg->easy_handle);
                 }
             }
         }
