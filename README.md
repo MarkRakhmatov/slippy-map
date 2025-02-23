@@ -5,6 +5,8 @@ Simple C++ slippy map
 
 ## Dependencies
 * Catch2
+* SDL3
+* SDL3_Image
 
 ## Build
 ```
