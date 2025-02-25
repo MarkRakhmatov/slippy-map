@@ -52,7 +52,7 @@ int getAvailableTiles(geo::TileDownloader& tileDownloader,
 
 void eventloop(geo::MapView &view, SDL_Window* window){
 	bool mouseLBDown = false;
-	bool mouseRBDown = false;
+	[[maybe_unused]] bool mouseRBDown = false;
 	bool dirty = true;
 	Uint64 lastLMClick = 0;
 	Uint64 lastRMClick = 0;
