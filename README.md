@@ -1,7 +1,7 @@
 # slippy-map
-[![cpp-linter](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/lint.yml)
-[![Tests](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml)
-[![CMake on multiple platforms](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=main)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cmake-multi-platform.yml)
+[![cpp-linter](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/lint.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/lint.yml)
+[![Tests](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml)
+[![CMake on multiple platforms](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cmake-multi-platform.yml)
 <a href="https://scan.coverity.com/projects/markrakhmatov-slippy-map">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/31418/badge.svg"/>
