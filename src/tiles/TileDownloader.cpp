@@ -1,4 +1,6 @@
 #include <format>
+#include <cstring>
+
 #include "TileDownloader.hpp"
 
 namespace geo {
