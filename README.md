@@ -1,5 +1,9 @@
 # slippy-map
 [![Build Status](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml)
+<a href="https://scan.coverity.com/projects/markrakhmatov-slippy-map">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/31418/badge.svg"/>
+</a>
 
 https://github.com/user-attachments/assets/12188e03-e61f-400f-8954-32298ddd5ddd
 
