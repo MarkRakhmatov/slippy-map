@@ -8,9 +8,6 @@ jobs:
       fail-fast: false
     name: "MSVC ${{ matrix.version }} (C++20)"
     runs-on: windows-2022
-    defaults:
-      run:
-        working-directory: ./app
     steps:
       - name: Add MSVC ${{ matrix.version }} to PATH
         uses: ilammy/msvc-dev-cmd@v1
@@ -20,6 +17,8 @@ jobs:
         run: choco install cmake
       - uses: actions/checkout@v2
       - name: "Configure"
+        working-directory: tests
         run: cmake -S . -B build
       - name: "Build"
+        working-directory: tests
         run: cmake --build build --verbose
