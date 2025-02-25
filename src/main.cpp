@@ -21,10 +21,8 @@
 #include <thread>
 #include <chrono>
 
-int getAvailableTiles(geo::TileDownloader& tileDownloader,
-        geo::MapView& mapView,
-        SDL_Surface* screen, std::vector<SDLTile>& availableTiles, std::vector<geo::Tile>& scheduledTiles) {
-    auto tileWithBufferCb = [screen, &mapView, &availableTiles, &scheduledTiles](TileWithBuffer& tileWithBuffer) {
+int getAvailableTiles(geo::TileDownloader& tileDownloader, std::vector<SDLTile>& availableTiles, std::vector<geo::Tile>& scheduledTiles) {
+    auto tileWithBufferCb = [&availableTiles, &scheduledTiles](TileWithBuffer& tileWithBuffer) {
         auto surface = IMG_Load_IO(
                 SDL_IOFromMem(
                 static_cast<void*>(tileWithBuffer.data.data()),
@@ -155,7 +153,7 @@ void eventloop(geo::MapView &view, SDL_Window* window){
             };
             bounds.iterateTiles(tileHandler);
             std::vector<SDLTile> availableTiles;
-            auto remaining = getAvailableTiles(tileDownloader, view, screen, availableTiles, scheduledTiles);
+            auto remaining = getAvailableTiles(tileDownloader, availableTiles, scheduledTiles);
             dirty = remaining > 0;
             std::vector<SDLTile> updatedTiles;
             for(auto& tile: tilesCache) {
