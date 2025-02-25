@@ -1,7 +1,9 @@
 #pragma once
 #include <unordered_map>
-#include "Tile.hpp"
 #include <functional>
+#include <cstdint>
+
+#include "Tile.hpp"
 
 namespace geo
 {
