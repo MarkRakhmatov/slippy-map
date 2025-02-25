@@ -13,8 +13,7 @@ Include(FetchContent)
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL
-    # This will be a tag once SDL3 is released
-    GIT_TAG origin/main
+    GIT_TAG release-3.2.4
     OVERRIDE_FIND_PACKAGE
 )
 
@@ -23,8 +22,7 @@ FetchContent_MakeAvailable(SDL3)
 FetchContent_Declare(
     SDL3_image
     GIT_REPOSITORY https://github.com/libsdl-org/SDL_image
-    # This will be a tag once SDL3 is released
-    GIT_TAG origin/main
+    GIT_TAG release-3.2.0
     OVERRIDE_FIND_PACKAGE
 )
 

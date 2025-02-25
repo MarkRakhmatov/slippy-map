@@ -30,7 +30,14 @@
 *.exe
 *.out
 *.app
+
 # cmake build dirctories
 build/*
 tests/build/*
+
+# vs code settings
 .vscode/*
+
+# coverage
+coverage/*
+*.log
