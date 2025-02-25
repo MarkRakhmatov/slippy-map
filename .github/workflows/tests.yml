@@ -22,3 +22,6 @@ jobs:
       - name: "Build"
         working-directory: tests
         run: cmake --build build --verbose
+      - name: "Run tests"
+        working-directory: tests
+        run: build/Debug/tests.exe
