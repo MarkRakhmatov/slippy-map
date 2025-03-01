@@ -81,6 +81,11 @@ add_executable(slippy-map)
 
 add_subdirectory(src)
 
+if(SLIPPY_MAP_BUILD_TESTS)
+  add_subdirectory(tests)
+  include(CTest)
+endif()
+
 if(MSVC)
   target_compile_options(slippy-map PRIVATE /W4 /WX)
 else()

@@ -22,8 +22,8 @@ namespace geo {
 class TileDownloader {
 public:
     TileDownloader();
-    void Schedule(const geo::Tile& t);
-    void GetDownloaded(int &still_running, TileHandlerCB tileHandler);
+    void schedule(const geo::Tile& t);
+    void handleDownloaded(int &still_running, TileHandlerCB tileHandler);
 private:
     CURLMultiGuard mCurlMultiHandle;
     std::unordered_map<CURL*, TileWithBuffer> mCurlToData;

@@ -15,40 +15,97 @@
 #include "tiles/Tile.hpp"
 #include "tiles/TileDownloader.hpp"
 #include "tiles/Renderer.hpp"
-#include "tiles/MapView.hpp"
+#include "tiles/MapModel.hpp"
 #include <SDL3_image/SDL_image.h>
 #include <memory>
 #include <thread>
 #include <chrono>
 
-int getAvailableTiles(geo::TileDownloader& tileDownloader, std::vector<SDLTile>& availableTiles, std::vector<geo::Tile>& scheduledTiles) {
-    auto tileWithBufferCb = [&availableTiles, &scheduledTiles](TileWithBuffer& tileWithBuffer) {
-        auto surface = IMG_Load_IO(
-                SDL_IOFromMem(
-                static_cast<void*>(tileWithBuffer.data.data()),
-                tileWithBuffer.data.size()
-            ),
-            true
-        );
-        if (auto it = std::find(scheduledTiles.cbegin(), scheduledTiles.cend(), tileWithBuffer.tile); it != scheduledTiles.cend()) {
-            scheduledTiles.erase(it);
-        }
-        if (!surface) {
-            SDL_Log("Tile::load image is not loaded");
-        }
-        else {
-            availableTiles.emplace_back(tileWithBuffer.tile,
-                makeSDLSurfaceGuard(surface));
-        }
-    };
 
-    int still_running = 1;
-    tileDownloader.GetDownloaded(still_running, tileWithBufferCb);
-    return still_running;
-}
+class TilesRenderer {
+	std::vector<geo::Tile> mScheduledTiles;
+	mutable std::vector<SDLTile> mTilesCache;
+private:
+	int getAvailableTiles(geo::TileDownloader& tileDownloader, std::vector<SDLTile>& availableTiles) {
+		auto tileWithBufferCb = [&availableTiles, this](TileWithBuffer& tileWithBuffer) {
+			auto surface = IMG_Load_IO(
+					SDL_IOFromMem(
+					static_cast<void*>(tileWithBuffer.data.data()),
+					tileWithBuffer.data.size()
+				),
+				true
+			);
+			if (auto it = std::find(mScheduledTiles.cbegin(), mScheduledTiles.cend(), tileWithBuffer.tile); it != mScheduledTiles.cend()) {
+				mScheduledTiles.erase(it);
+			}
+			if (!surface) {
+				SDL_Log("Tile::load image is not loaded");
+			}
+			else {
+				availableTiles.emplace_back(tileWithBuffer.tile,
+					makeSDLSurfaceGuard(surface));
+			}
+		};
+
+		int still_running = 1;
+		tileDownloader.handleDownloaded(still_running, tileWithBufferCb);
+		return still_running;
+	}
+public:
+	bool update(geo::MapModel& view, SDL_Surface* screen, geo::TileDownloader& tileDownloader) {
+		auto bounds = view.getBounds();
+		auto tileHandler = [&tileDownloader, this](geo::Tile&& tile){
+			if (std::find(mScheduledTiles.cbegin(), mScheduledTiles.cend(), tile) != mScheduledTiles.cend()){
+				return;
+			}
+			if (std::find_if(mTilesCache.cbegin(), mTilesCache.cend(),
+					[&tile](const auto& sdlTile) {return sdlTile.tile == tile;}) != mTilesCache.cend()){
+				return;
+			}
+			tileDownloader.schedule(tile);
+			mScheduledTiles.push_back(tile);
+		};
+		bounds.iterateUniqueTiles(tileHandler);
+		std::vector<SDLTile> availableTiles;
+		auto remaining = getAvailableTiles(tileDownloader, availableTiles);
+		bool dirty = remaining > 0;
+		std::vector<SDLTile> updatedTiles;
+		auto boundStr = std::format("Bound: minx {}, xsize {}, miny {}, ysize {}", bounds.minx, bounds.xsize, bounds.miny, bounds.ysize);
+		SDL_Log(boundStr.c_str());
+		view.normalizeOffset();
+		auto [offsetPixX, offsetPixY] = view.getOffset();
+		auto offsetStr = std::format("offsetPixX {}, offsetPixY {}", offsetPixX, offsetPixY);
+		SDL_Log(offsetStr.c_str());
+		
+		for(auto& tile: mTilesCache) {
+			if (bounds.contains(tile.tile)) {
+				updatedTiles.emplace_back(tile.tile, std::move(tile.surface));
+			}
+		}
+		updatedTiles.insert(updatedTiles.end(), std::make_move_iterator(availableTiles.begin()), std::make_move_iterator(availableTiles.end()));
+		bounds.iterateAllTiles([&view, &updatedTiles, screen](geo::Tile&& t){
+			auto [offsetPixX, offsetPixY] = view.getOffset();
+			auto loopX = geo::mod(t.x, 1 << t.z);
+			auto loopY = geo::mod(t.y, 1 << t.z);
+			geo::Tile normalizedTile{loopX, loopY, t.z};
+			auto it = std::find_if(updatedTiles.begin(), updatedTiles.end(), [&normalizedTile](const SDLTile& sdlTile){
+				return sdlTile.tile == normalizedTile;
+			});
+			if (it != updatedTiles.end()) {
+				renderTile(screen, t, it->surface.get(), offsetPixX, offsetPixY, 256);
+			}
+			else {
+				SDL_Log("Tile not found!!!");
+				renderTile(screen, t, nullptr, offsetPixX, offsetPixY, 256);
+			}
+		});
+		mTilesCache = std::move(updatedTiles);
+		return dirty;
+	}
+};
 
 
-void eventloop(geo::MapView &view, SDL_Window* window){
+void eventloop(geo::MapModel &view, SDL_Window* window){
 	bool mouseLBDown = false;
 	[[maybe_unused]] bool mouseRBDown = false;
 	bool dirty = true;
@@ -57,8 +114,7 @@ void eventloop(geo::MapView &view, SDL_Window* window){
 	float zoomdf = 0;
     
     geo::TileDownloader tileDownloader;
-    std::vector<geo::Tile> scheduledTiles;
-    std::vector<SDLTile> tilesCache;
+	TilesRenderer tileRenderer;
 	for(;;){
 		SDL_Event event;
 		while((dirty ? SDL_PollEvent : SDL_WaitEvent)(&event)){
@@ -136,42 +192,11 @@ void eventloop(geo::MapView &view, SDL_Window* window){
 					break;
 			}
 		}
-        SDL_Surface *screen = SDL_GetWindowSurface(window);
 		if(dirty){
-            view.updateBounds();
-			auto bounds = view.getBounds();
-            auto tileHandler = [&tileDownloader, &scheduledTiles, &tilesCache](const geo::Tile& tile){
-                if (std::find(scheduledTiles.cbegin(), scheduledTiles.cend(), tile) != scheduledTiles.cend()){
-                    return;
-                }
-                if (std::find_if(tilesCache.cbegin(), tilesCache.cend(),
-                        [&tile](const auto& sdlTile) {return sdlTile.tile == tile;}) != tilesCache.cend()){
-                    return;
-                }
-                tileDownloader.Schedule(tile);
-                scheduledTiles.push_back(tile);
-            };
-            bounds.iterateTiles(tileHandler);
-            std::vector<SDLTile> availableTiles;
-            auto remaining = getAvailableTiles(tileDownloader, availableTiles, scheduledTiles);
-            dirty = remaining > 0;
-            std::vector<SDLTile> updatedTiles;
-            for(auto& tile: tilesCache) {
-                if (bounds.contains(tile.tile)) {
-                    updatedTiles.emplace_back(tile.tile, std::move(tile.surface));
-                }
-            }
-            auto [offsetPixX, offsetPixY] = view.getOffset();
-            for(auto& sdTile: availableTiles) {
-                renderTile(screen, sdTile, offsetPixX, offsetPixY, 256);
-            }
-            for(auto& sdTile: updatedTiles) {
-                renderTile(screen, sdTile, offsetPixX, offsetPixY, 256);
-            }
-            updatedTiles.insert(updatedTiles.end(), std::make_move_iterator(availableTiles.begin()), std::make_move_iterator(availableTiles.end()));
-            tilesCache = std::move(updatedTiles);
+			SDL_Surface *screen = SDL_GetWindowSurface(window);
+			dirty = tileRenderer.update(view, screen, tileDownloader);
+			SDL_UpdateWindowSurface(window);
 		}
-        SDL_UpdateWindowSurface(window);
 	}
 }
 
@@ -182,9 +207,9 @@ int main(int, char*[]) {
 	}
 	int width = 1200, height = 800;
 	SDL_Window* window = SDL_CreateWindow("slippy-map", width, height, SDL_WINDOW_RESIZABLE);
-    int zoom = 12;
-    geo::MapView mapView(width, height, zoom);
-    mapView.setCenterCoords(48.4284f, 37.3656f);
+    int zoom = 2;
+    geo::MapModel mapView(width, height, zoom);
+    mapView.setCenterCoords(0.f, -75.f);
     eventloop(mapView, window);
 	return 0;
 }

@@ -10,5 +10,14 @@ namespace geo
         bool operator==(const Tile& other) const {
             return z == other.z && y == other.y && x == other.x;
         }
+        bool operator<(const Tile& other) const {
+            if (z != other.z) {
+                return z < other.z;
+            }
+            if (x != other.x) {
+                return x <= other.x;
+            }
+            return y < other.y;
+        }
     };
 }
