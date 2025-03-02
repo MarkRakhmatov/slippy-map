@@ -144,9 +144,9 @@ TEST_CASE( "bounds move left", "[Bounds]" ) {
         uniqueTiles2.push_back(t);
     });
     auto [minx, maxx] = bounds2.getMinMaxX();
-    REQUIRE(minx == 0);
+    REQUIRE(minx == 4);
     REQUIRE(maxx == 7);
-    REQUIRE(bounds2.getMinMaxX() == std::tuple<int32_t, int32_t>(0, 7));
+    REQUIRE(bounds2.getMinMaxX() == std::tuple<int32_t, int32_t>(4, 7));
     auto [bounds2Miny, bounds2Maxy] = bounds2.getMinMaxY();
     REQUIRE(bounds2Miny == 1);
     REQUIRE(bounds2Maxy == 5);

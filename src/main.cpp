@@ -24,10 +24,11 @@
 
 class TilesRenderer {
 	std::vector<geo::Tile> mScheduledTiles;
-	mutable std::vector<SDLTile> mTilesCache;
+	std::vector<SDLTile> mAvailableTiles;
+	std::vector<SDLTile> mTilesCache;
 private:
-	int getAvailableTiles(geo::TileDownloader& tileDownloader, std::vector<SDLTile>& availableTiles) {
-		auto tileWithBufferCb = [&availableTiles, this](TileWithBuffer& tileWithBuffer) {
+	int getAvailableTiles(geo::TileDownloader& tileDownloader) {
+		auto tileWithBufferCb = [this](TileWithBuffer& tileWithBuffer) {
 			auto surface = IMG_Load_IO(
 					SDL_IOFromMem(
 					static_cast<void*>(tileWithBuffer.data.data()),
@@ -42,7 +43,7 @@ private:
 				SDL_Log("Tile::load image is not loaded");
 			}
 			else {
-				availableTiles.emplace_back(tileWithBuffer.tile,
+				mAvailableTiles.emplace_back(tileWithBuffer.tile,
 					makeSDLSurfaceGuard(surface));
 			}
 		};
@@ -66,23 +67,18 @@ public:
 			mScheduledTiles.push_back(tile);
 		};
 		bounds.iterateUniqueTiles(tileHandler);
-		std::vector<SDLTile> availableTiles;
-		auto remaining = getAvailableTiles(tileDownloader, availableTiles);
+		auto remaining = getAvailableTiles(tileDownloader);
 		bool dirty = remaining > 0;
 		std::vector<SDLTile> updatedTiles;
-		auto boundStr = std::format("Bound: minx {}, xsize {}, miny {}, ysize {}", bounds.minx, bounds.xsize, bounds.miny, bounds.ysize);
-		SDL_Log(boundStr.c_str());
 		view.normalizeOffset();
-		auto [offsetPixX, offsetPixY] = view.getOffset();
-		auto offsetStr = std::format("offsetPixX {}, offsetPixY {}", offsetPixX, offsetPixY);
-		SDL_Log(offsetStr.c_str());
 		
 		for(auto& tile: mTilesCache) {
 			if (bounds.contains(tile.tile)) {
 				updatedTiles.emplace_back(tile.tile, std::move(tile.surface));
 			}
 		}
-		updatedTiles.insert(updatedTiles.end(), std::make_move_iterator(availableTiles.begin()), std::make_move_iterator(availableTiles.end()));
+		updatedTiles.insert(updatedTiles.end(), std::make_move_iterator(mAvailableTiles.begin()), std::make_move_iterator(mAvailableTiles.end()));
+		mAvailableTiles.clear();
 		bounds.iterateAllTiles([&view, &updatedTiles, screen](geo::Tile&& t){
 			auto [offsetPixX, offsetPixY] = view.getOffset();
 			auto loopX = geo::mod(t.x, 1 << t.z);
@@ -95,7 +91,6 @@ public:
 				renderTile(screen, t, it->surface.get(), offsetPixX, offsetPixY, 256);
 			}
 			else {
-				SDL_Log("Tile not found!!!");
 				renderTile(screen, t, nullptr, offsetPixX, offsetPixY, 256);
 			}
 		});
