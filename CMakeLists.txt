@@ -19,6 +19,23 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(SDL3)
 
+set(SDLIMAGE_JPG ON CACHE INTERNAL "Disable loading JPEG images")
+set(SDLIMAGE_PNG ON CACHE INTERNAL "Disable loading PNG images")
+set(SDLIMAGE_AVIF OFF CACHE INTERNAL "Disable AVIF loading images")
+set(SDLIMAGE_BMP OFF CACHE INTERNAL "Disable loading BMP images")
+set(SDLIMAGE_GIF OFF CACHE INTERNAL "Disable loading GIF images")
+set(SDLIMAGE_LBM OFF CACHE INTERNAL "Disable loading LBM images")
+set(SDLIMAGE_PCX OFF CACHE INTERNAL "Disable loading PCX images")
+set(SDLIMAGE_PNM OFF CACHE INTERNAL "Disable loading PNM images")
+set(SDLIMAGE_QOI OFF CACHE INTERNAL "Disable loading QOI images")
+set(SDLIMAGE_SVG OFF CACHE INTERNAL "Disable loading SVG images")
+set(SDLIMAGE_TGA OFF CACHE INTERNAL "Disable loading TGA images")
+set(SDLIMAGE_TIF OFF CACHE INTERNAL "Disable loading TIFF images")
+set(SDLIMAGE_WEBP OFF CACHE INTERNAL "Disable loading WEBP images")
+set(SDLIMAGE_XCF OFF CACHE INTERNAL "Disable loading XCF images")
+set(SDLIMAGE_XPM OFF CACHE INTERNAL "Disable loading XPM images")
+set(SDLIMAGE_XV OFF CACHE INTERNAL "Disable loading XV images")
+
 FetchContent_Declare(
     SDL3_image
     GIT_REPOSITORY https://github.com/libsdl-org/SDL_image

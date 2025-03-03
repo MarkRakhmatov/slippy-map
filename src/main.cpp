@@ -206,5 +206,5 @@ int main(int, char*[]) {
     geo::MapModel mapView(width, height, zoom);
     mapView.setCenterCoords(0.f, -75.f);
     eventloop(mapView, window);
-	return 0;
+	exit(0);
 }
