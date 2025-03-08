@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <vector>
 #include <functional>
 #include <algorithm>
 #include <cstdint>
@@ -16,7 +17,7 @@ struct TilesBounds {
     int32_t xsize;
     int32_t ysize;
     int32_t z;
-    bool contains(const geo::Tile& tile) const {
+    auto contains(const geo::Tile& tile) const -> bool {
         /*
         auto [minx1, maxx] = getMinMaxX();
         auto [miny1, maxy] = getMinMaxY();
@@ -35,7 +36,7 @@ struct TilesBounds {
        return res;
     }
 
-    std::tuple<int, int> getMinMaxX() const {
+    auto getMinMaxX() const -> std::tuple<int, int> {
         if (z == 0) {
             return {0, 0};
         }
@@ -53,7 +54,7 @@ struct TilesBounds {
         return {minx1, maxx};
     }
 
-    std::tuple<int, int> getMinMaxY() const {
+    auto getMinMaxY() const -> std::tuple<int, int> {
         if (z == 0) {
             return {0, 0};
         }
