@@ -100,7 +100,7 @@ public:
 };
 
 
-void eventloop(geo::MapModel &view, SDL_Window* window){
+int eventloop(geo::MapModel &view, SDL_Window* window){
 	bool mouseLBDown = false;
 	[[maybe_unused]] bool mouseRBDown = false;
 	bool dirty = true;
@@ -193,6 +193,7 @@ void eventloop(geo::MapModel &view, SDL_Window* window){
 			SDL_UpdateWindowSurface(window);
 		}
 	}
+	return 0;
 }
 
 int main(int, char*[]) {
@@ -205,6 +206,5 @@ int main(int, char*[]) {
     int zoom = 2;
     geo::MapModel mapView(width, height, zoom);
     mapView.setCenterCoords(0.f, -75.f);
-    eventloop(mapView, window);
-	exit(0);
+    return eventloop(mapView, window);
 }
