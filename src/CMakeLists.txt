@@ -4,12 +4,12 @@ target_sources(slippy-map
     tiles/Utils.hpp
     tiles/Tile.hpp
     tiles/Renderer.hpp
-    tiles/MapView.hpp
+    tiles/MapModel.hpp
     main.cpp
 
     PRIVATE
     tiles/TileDownloader.cpp
     tiles/Utils.cpp
     tiles/Renderer.cpp
-    tiles/MapView.cpp
+    tiles/MapModel.cpp
 )

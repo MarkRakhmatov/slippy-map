@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "TileDownloader.hpp"
+#include "Utils.hpp"
 
 namespace geo {
 
@@ -24,7 +25,7 @@ TileDownloader::TileDownloader()
 
 }
 
-void TileDownloader::Schedule(const geo::Tile& t) {
+void TileDownloader::schedule(const geo::Tile& t) {
     CURL* curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "slippy-map/1.0");
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -40,7 +41,7 @@ void TileDownloader::Schedule(const geo::Tile& t) {
     curl_multi_add_handle(mCurlMultiHandle.get(), curl);
 }
 
-void TileDownloader::GetDownloaded(int &still_running, TileHandlerCB tileHandler){
+void TileDownloader::handleDownloaded(int &still_running, TileHandlerCB tileHandler){
     int msgs_left = 0;
     CURLMsg *msg{};
     curl_multi_perform(mCurlMultiHandle.get(), &still_running);

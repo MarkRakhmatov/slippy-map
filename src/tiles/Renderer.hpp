@@ -14,4 +14,4 @@ struct SDLTile {
     SDLSurfaceGuard surface;
 };
 
-void renderTile(SDL_Surface *screen, SDLTile& sdlTile, int offsetx, int offsety, int tilesize);
+void renderTile(SDL_Surface *screen, const geo::Tile& tile, SDL_Surface *tileSurface, int offsetx, int offsety, int tilesize);
