@@ -1,21 +1,17 @@
-name: cppcheck-action-test
-on: [push]
+name: cppcheck
+on: [pull_request]
 
 jobs:
-  build:
-    name: cppcheck-test
+  cppchceck:
+    name: cppcheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-          
-      - name: cppcheck
-        uses: deep5050/cppcheck-action@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN}}
-          
-        
-      - name: publish report    
-        uses: mikeal/publish-to-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: 'main' # your branch name goes here
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: linuxdeepin/action-cppcheck@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          pull_request_id: ${{ github.event.pull_request.number }}
