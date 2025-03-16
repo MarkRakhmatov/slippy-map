@@ -1,3 +1,1 @@
-namespace geo {
-    
-}
+namespace geo {}
