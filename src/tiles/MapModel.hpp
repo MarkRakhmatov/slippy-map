@@ -27,7 +27,7 @@ struct TilesBounds {
     */
     bool res = false;
 
-    iterateUniqueTiles([&tile, &res](geo::Tile &&uniqueTile) {
+    iterateUniqueTiles([&tile, &res](const geo::Tile &uniqueTile) {
       if (uniqueTile == tile) {
         res = true;
       }
@@ -71,10 +71,10 @@ struct TilesBounds {
     return {miny1, maxy};
   }
 
-  void
-  iterateUniqueTiles(std::function<void(geo::Tile &&)> tileCB) const noexcept {
+  void iterateUniqueTiles(
+      std::function<void(const geo::Tile &)> tileCB) const noexcept {
     std::vector<geo::Tile> uniqueTiles{};
-    auto allTilesFunc = [&uniqueTiles, &tileCB](geo::Tile &&t) {
+    auto allTilesFunc = [&uniqueTiles, &tileCB](const geo::Tile &t) {
       auto x = mod(t.x, 1 << t.z);
       auto y = mod(t.y, 1 << t.z);
       auto normTile = geo::Tile{x, y, t.z};
@@ -87,8 +87,8 @@ struct TilesBounds {
     iterateAllTiles(allTilesFunc);
   }
 
-  void
-  iterateAllTiles(std::function<void(geo::Tile &&)> tileCB) const noexcept {
+  void iterateAllTiles(
+      std::function<void(const geo::Tile &)> tileCB) const noexcept {
     for (auto x = minx; x <= minx + xsize; ++x) {
       for (auto y = miny; y <= miny + ysize; ++y) {
         tileCB({x, y, z});

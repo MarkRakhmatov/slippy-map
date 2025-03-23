@@ -39,6 +39,7 @@ private:
         mScheduledTiles.erase(it);
       }
       if (!surface) {
+        /* NOLINT */
         SDL_Log("Tile::load image is not loaded");
       } else {
         mAvailableTiles.emplace_back(tileWithBuffer.tile,
@@ -55,7 +56,7 @@ public:
   bool update(geo::MapModel &view, SDL_Surface *screen,
               geo::TileDownloader &tileDownloader) {
     auto bounds = view.getBounds();
-    auto tileHandler = [&tileDownloader, this](geo::Tile &&tile) {
+    auto tileHandler = [&tileDownloader, this](const geo::Tile &tile) {
       if (std::find(mScheduledTiles.cbegin(), mScheduledTiles.cend(), tile) !=
           mScheduledTiles.cend()) {
         return;
@@ -84,19 +85,21 @@ public:
                         std::make_move_iterator(mAvailableTiles.begin()),
                         std::make_move_iterator(mAvailableTiles.end()));
     mAvailableTiles.clear();
-    bounds.iterateAllTiles([&view, &updatedTiles, screen](geo::Tile &&t) {
+    bounds.iterateAllTiles([&view, &updatedTiles, screen](const geo::Tile &t) {
       auto [offsetPixX, offsetPixY] = view.getOffset();
       auto loopX = geo::mod(t.x, 1 << t.z);
       auto loopY = geo::mod(t.y, 1 << t.z);
       geo::Tile normalizedTile{loopX, loopY, t.z};
+      constexpr auto tileSize = 256;
       auto it = std::find_if(updatedTiles.begin(), updatedTiles.end(),
                              [&normalizedTile](const SDLTile &sdlTile) {
                                return sdlTile.tile == normalizedTile;
                              });
       if (it != updatedTiles.end()) {
-        renderTile(screen, t, it->surface.get(), offsetPixX, offsetPixY, 256);
+        renderTile(screen, t, it->surface.get(), offsetPixX, offsetPixY,
+                   tileSize);
       } else {
-        renderTile(screen, t, nullptr, offsetPixX, offsetPixY, 256);
+        renderTile(screen, t, nullptr, offsetPixX, offsetPixY, tileSize);
       }
     });
     mTilesCache = std::move(updatedTiles);
@@ -105,6 +108,8 @@ public:
 };
 
 int eventloop(geo::MapModel &view, SDL_Window *window) {
+  constexpr auto doubleClickMs = 250;
+  constexpr auto zoomSensitivity = 4.0f;
   bool mouseLBDown = false;
   [[maybe_unused]] bool mouseRBDown = false;
   bool dirty = true;
@@ -126,7 +131,7 @@ int eventloop(geo::MapModel &view, SDL_Window *window) {
         if (event.button.button == 1) {
           mouseLBDown = true;
           auto ticks = SDL_GetTicks();
-          if (ticks - lastLMClick < 250) {
+          if (ticks - lastLMClick < doubleClickMs) {
             lastLMClick = 0;
             view.zoomAt(static_cast<int>(event.button.x),
                         static_cast<int>(event.button.y));
@@ -136,7 +141,7 @@ int eventloop(geo::MapModel &view, SDL_Window *window) {
         } else if (event.button.button == 3) {
           mouseRBDown = true;
           auto ticks = SDL_GetTicks();
-          if (ticks - lastRMClick < 250) {
+          if (ticks - lastRMClick < doubleClickMs) {
             lastRMClick = 0;
             view.zoomFrom(static_cast<int>(event.button.x),
                           static_cast<int>(event.button.y));
@@ -147,11 +152,11 @@ int eventloop(geo::MapModel &view, SDL_Window *window) {
         break;
       case SDL_EVENT_MOUSE_WHEEL:
         zoomdf += event.wheel.y;
-        if (zoomdf >= 4.0f) {
+        if (zoomdf >= zoomSensitivity) {
           zoomdf = 0;
           view.zoomIn();
           dirty = true;
-        } else if (zoomdf <= -4.0f) {
+        } else if (zoomdf <= -zoomSensitivity) {
           zoomdf = 0;
           view.zoomOut();
           dirty = true;
@@ -204,14 +209,16 @@ int eventloop(geo::MapModel &view, SDL_Window *window) {
 
 int main(int, char *[]) {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
+    /* NOLINT */
     SDL_Log("SDL_Init failed: %s", SDL_GetError());
     exit(-1);
   }
-  int width = 1200, height = 800;
-  SDL_Window *window =
-      SDL_CreateWindow("slippy-map", width, height, SDL_WINDOW_RESIZABLE);
-  int zoom = 2;
-  geo::MapModel mapView(width, height, zoom);
-  mapView.setCenterCoords(0.f, -75.f);
+  const int defaultWidth = 1200, defaultHeight = 800;
+  SDL_Window *window = SDL_CreateWindow("slippy-map", defaultWidth,
+                                        defaultHeight, SDL_WINDOW_RESIZABLE);
+  const int zoom = 10;
+  geo::MapModel mapView(defaultWidth, defaultHeight, zoom);
+  const float lat = 49.f, lon = 37.f;
+  mapView.setCenterCoords(lat, lon);
   return eventloop(mapView, window);
 }
