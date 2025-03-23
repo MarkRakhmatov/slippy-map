@@ -39,8 +39,7 @@ private:
         mScheduledTiles.erase(it);
       }
       if (!surface) {
-        /* NOLINT */
-        SDL_Log("Tile::load image is not loaded");
+        SDL_Log("Tile::load image is not loaded"); // NOLINT
       } else {
         mAvailableTiles.emplace_back(tileWithBuffer.tile,
                                      makeSDLSurfaceGuard(surface));
@@ -209,8 +208,7 @@ int eventloop(geo::MapModel &view, SDL_Window *window) {
 
 int main(int, char *[]) {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    /* NOLINT */
-    SDL_Log("SDL_Init failed: %s", SDL_GetError());
+    SDL_Log("SDL_Init failed: %s", SDL_GetError()); // NOLINT
     exit(-1);
   }
   const int defaultWidth = 1200, defaultHeight = 800;
