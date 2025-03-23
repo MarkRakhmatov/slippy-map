@@ -94,7 +94,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(CURL)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*)
+  set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,performance-*,portability-*,concurrency-*bugprone-*,cppcoreguidelines-* --warnings-as-errors=performance-*,portability-*,concurrency-*bugprone-*,cppcoreguidelines-*)
 endif()
 
 # add the executable
