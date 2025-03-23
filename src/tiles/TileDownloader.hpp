@@ -23,7 +23,7 @@ class TileDownloader {
 public:
   TileDownloader();
   void schedule(const geo::Tile &t);
-  void handleDownloaded(int &still_running, TileHandlerCB tileHandler);
+  void handleDownloaded(int &still_running, const TileHandlerCB &tileHandler);
 
 private:
   CURLMultiGuard mCurlMultiHandle;
