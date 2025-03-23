@@ -115,6 +115,7 @@ public:
     std::tie(m_offsetx, m_offsety) = getNormalizedOffset();
   }
   std::tuple<int, int> getNormalizedOffset() const noexcept;
+  std::tuple<int, int> getSize() const noexcept { return {m_width, m_height}; }
 
 private:
   int m_width, m_height;

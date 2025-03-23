@@ -93,6 +93,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(CURL)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*)
+endif()
+
 # add the executable
 add_executable(slippy-map)
 
