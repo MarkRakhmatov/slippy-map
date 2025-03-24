@@ -1,0 +1,17 @@
+name: cppcheck
+on: [pull_request]
+
+jobs:
+  cppchceck:
+    name: cppcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: linuxdeepin/action-cppcheck@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          pull_request_id: ${{ github.event.pull_request.number }}
