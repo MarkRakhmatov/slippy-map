@@ -1,5 +1,4 @@
 # slippy-map
-[![cpp-linter](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/lint.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/lint.yml)
 [![cppcheck](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cppcheck.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cppcheck.yml)
 [![Tests](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/tests.yml)
 [![CMake on multiple platforms](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/MarkRakhmatov/slippy-map/actions/workflows/cmake-multi-platform.yml)
