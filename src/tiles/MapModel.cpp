@@ -6,13 +6,20 @@
 #include "Utils.hpp"
 
 constexpr int g_tilesize = 256;
+constexpr int g_maxZoom = 22;
 
 std::tuple<int32_t, int32_t> LatLongToPxOffset(float lat, float lng, int zoom,
                                                int width, int height,
                                                int tilesize) {
   auto [xtile, ytile] = geo::LatLongToTileNumF(lat, lng, zoom);
-  int32_t offsetx = static_cast<int32_t>(xtile * tilesize - width / 2);
-  int32_t offsety = static_cast<int32_t>(ytile * tilesize - height / 2);
+  int32_t offsetx = static_cast<int32_t>(
+      xtile * static_cast<float>(tilesize) -
+      static_cast<float>(width) /
+          2.0f); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  int32_t offsety = static_cast<int32_t>(
+      ytile * static_cast<float>(tilesize) -
+      static_cast<float>(height) /
+          2.0f); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   return {offsetx, offsety};
 }
 
@@ -30,7 +37,7 @@ void MapModel::moveBy(int dx, int dy) {
   m_offsety += dy;
 }
 void MapModel::zoomAt(int x, int y) {
-  if (m_zoom < 22) {
+  if (m_zoom < g_maxZoom) {
     ++m_zoom;
     m_offsetx = m_offsetx * 2 + x;
     m_offsety = m_offsety * 2 + y;

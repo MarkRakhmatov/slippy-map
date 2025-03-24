@@ -15,9 +15,10 @@ void renderTile(SDL_Surface *screen, const geo::Tile &tile,
   if (tileSurface) {
     SDL_BlitSurface(tileSurface, NULL, screen, &dest);
   } else {
+    constexpr uint8_t red = 255, green = 255, blue = 255;
     SDL_FillSurfaceRect(screen, &dest,
                         SDL_MapRGB(SDL_GetPixelFormatDetails(screen->format),
-                                   SDL_GetSurfacePalette(screen), 255, 255,
-                                   255));
+                                   SDL_GetSurfacePalette(screen), red, green,
+                                   blue));
   }
 }
