@@ -133,46 +133,21 @@ TEST_CASE("bounds move left", "[Bounds]") {
   bounds2.iterateUniqueTiles(
       [&uniqueTiles2](const geo::Tile &t) { uniqueTiles2.push_back(t); });
   auto [minx, maxx] = bounds2.getMinMaxX();
-  REQUIRE(minx == 4);
+  REQUIRE(minx == 0);
   REQUIRE(maxx == 7);
-  REQUIRE(bounds2.getMinMaxX() == std::tuple<int32_t, int32_t>(4, 7));
+  REQUIRE(bounds2.getMinMaxX() == std::tuple<int32_t, int32_t>(0, 7));
   auto [bounds2Miny, bounds2Maxy] = bounds2.getMinMaxY();
   REQUIRE(bounds2Miny == 1);
   REQUIRE(bounds2Maxy == 5);
   REQUIRE(bounds2.getMinMaxY() == std::tuple<int32_t, int32_t>(1, 5));
   std::vector<geo::Tile> expectedUniqueTiles{
-      {0, 1, 3},
-      {0, 2, 3},
-      {0, 3, 3},
-      {0, 4, 3},
-      {0, 5, 3},
-      {1, 1, 3},
-      {1, 2, 3},
-      {1, 3, 3},
-      {1, 4, 3},
-      {1, 5, 3},
-      {2, 1, 3},
-      {2, 2, 3},
-      {2, 3, 3},
-      {2, 4, 3},
-      {2, 5, 3},
-      {3, 1, 3},
-      {3, 2, 3},
-      {3, 3, 3},
-      {3, 4, 3},
-      {3, 5, 3},
-      {4, 1, 3},
-      {4, 2, 3},
-      {4, 3, 3},
-      {4, 4, 3},
-      {4, 5, 3},
-      //{5, 1, 3}, {5, 2, 3}, {5, 3, 3}, {5, 4, 3}, {5, 5, 3},
-      //{6, 1, 3}, {6, 2, 3}, {6, 3, 3}, {6, 4, 3}, {6, 5, 3},
-      {7, 1, 3},
-      {7, 2, 3},
-      {7, 3, 3},
-      {7, 4, 3},
-      {7, 5, 3},
+      {0, 1, 3}, {0, 2, 3}, {0, 3, 3}, {0, 4, 3}, {0, 5, 3}, {1, 1, 3},
+      {1, 2, 3}, {1, 3, 3}, {1, 4, 3}, {1, 5, 3}, {2, 1, 3}, {2, 2, 3},
+      {2, 3, 3}, {2, 4, 3}, {2, 5, 3}, {3, 1, 3}, {3, 2, 3}, {3, 3, 3},
+      {3, 4, 3}, {3, 5, 3}, {4, 1, 3}, {4, 2, 3}, {4, 3, 3}, {4, 4, 3},
+      {4, 5, 3}, {5, 1, 3}, {5, 2, 3}, {5, 3, 3}, {5, 4, 3}, {5, 5, 3},
+      {6, 1, 3}, {6, 2, 3}, {6, 3, 3}, {6, 4, 3}, {6, 5, 3}, {7, 1, 3},
+      {7, 2, 3}, {7, 3, 3}, {7, 4, 3}, {7, 5, 3},
   };
   std::sort(expectedUniqueTiles.begin(), expectedUniqueTiles.end());
   std::sort(uniqueTiles2.begin(), uniqueTiles2.end());

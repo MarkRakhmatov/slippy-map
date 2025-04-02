@@ -63,6 +63,7 @@ void MapView::resize(int width, int height) {
   m_width = width;
   m_height = height;
 }
+
 void MapView::updateBounds() noexcept {
   int maxOffsetY = (1 << m_zoom) * g_tilesize - m_height;
   if (m_offsety < 0)
@@ -73,6 +74,7 @@ void MapView::updateBounds() noexcept {
   /* Make our x offset loop back around*/
   m_offsetx = mod(m_offsetx, g_tilesize * (1 << m_zoom));
 }
+
 TilesBounds MapView::getBounds() const noexcept {
   return geo::TilesBounds{m_offsetx / g_tilesize, m_offsety / g_tilesize,
                           (m_offsetx + m_width) / g_tilesize + 1,

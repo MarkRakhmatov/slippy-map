@@ -16,23 +16,12 @@ struct TilesBounds {
   int32_t xsize;
   int32_t ysize;
   int32_t z;
+
   auto contains(const geo::Tile &tile) const -> bool {
-    /*
     auto [minx1, maxx] = getMinMaxX();
     auto [miny1, maxy] = getMinMaxY();
-    return tile.z == z && tile.x >= minx1
-            && tile.x <= maxx
-            && tile.y >= miny1
-            && tile.y <= maxy;
-    */
-    bool res = false;
-
-    iterateUniqueTiles([&tile, &res](const geo::Tile &uniqueTile) {
-      if (uniqueTile == tile) {
-        res = true;
-      }
-    });
-    return res;
+    return tile.z == z && tile.x >= minx1 && tile.x <= maxx &&
+           tile.y >= miny1 && tile.y <= maxy;
   }
 
   auto getMinMaxX() const -> std::tuple<int, int> {
@@ -42,7 +31,7 @@ struct TilesBounds {
     if (z == 1) {
       return {0, 1};
     }
-    if (xsize >= 1 << z) {
+    if (minx + xsize >= 1 << z) {
       return {0, (1 << z) - 1};
     }
     auto minx1 = mod(minx, 1 << z);
@@ -60,7 +49,7 @@ struct TilesBounds {
     if (z == 1) {
       return {0, 1};
     }
-    if (ysize >= 1 << z) {
+    if (miny + ysize >= 1 << z) {
       return {0, (1 << z) - 1};
     }
     auto miny1 = mod(miny, 1 << z);
@@ -73,18 +62,13 @@ struct TilesBounds {
 
   void iterateUniqueTiles(
       std::function<void(const geo::Tile &)> tileCB) const noexcept {
-    std::vector<geo::Tile> uniqueTiles{};
-    auto allTilesFunc = [&uniqueTiles, &tileCB](const geo::Tile &t) {
-      auto x = mod(t.x, 1 << t.z);
-      auto y = mod(t.y, 1 << t.z);
-      auto normTile = geo::Tile{x, y, t.z};
-      auto it = std::find(uniqueTiles.begin(), uniqueTiles.end(), normTile);
-      if (it == uniqueTiles.end()) {
-        uniqueTiles.push_back(normTile);
-        tileCB(std::move(normTile));
+    auto [minx1, maxx] = getMinMaxX();
+    auto [miny1, maxy] = getMinMaxY();
+    for (int32_t x = minx1; x <= maxx; ++x) {
+      for (int32_t y = miny1; y <= maxy; ++y) {
+        tileCB(geo::Tile{x, y, z});
       }
-    };
-    iterateAllTiles(allTilesFunc);
+    }
   }
 
   void iterateAllTiles(
