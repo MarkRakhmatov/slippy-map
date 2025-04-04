@@ -13,7 +13,7 @@ struct Tile {
       return z < other.z;
     }
     if (x != other.x) {
-      return x <= other.x;
+      return x < other.x;
     }
     return y < other.y;
   }

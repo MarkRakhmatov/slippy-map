@@ -4,7 +4,7 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "preLaunchTask":"CMake: build",
+            "preLaunchTask": "CMake: build",
             "program": "${workspaceFolder}/build/Debug/slippy-map.exe",
             //"program": "${workspaceFolder}/tests/build/Debug/tests.exe",
             "args": [],

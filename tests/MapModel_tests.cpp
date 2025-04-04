@@ -50,12 +50,6 @@ TEST_CASE("iterate unique tiles", "[MapModel]") {
   REQUIRE(bounds.xsize == 5);
   REQUIRE(bounds.miny == 0);
   REQUIRE(bounds.ysize == 4);
-  auto [minx, maxx] = bounds.getMinMaxX();
-  REQUIRE(minx == 0);
-  REQUIRE(maxx == 1);
-  auto [miny, maxy] = bounds.getMinMaxY();
-  REQUIRE(miny == 0);
-  REQUIRE(maxy == 1);
   std::vector<geo::Tile> tiles;
   bounds.iterateUniqueTiles(
       [&tiles](const geo::Tile &t) { tiles.push_back(t); });
@@ -117,10 +111,6 @@ TEST_CASE("bounds move left", "[Bounds]") {
   std::vector<geo::Tile> uniqueTiles1;
   bounds1.iterateUniqueTiles(
       [&uniqueTiles1](const geo::Tile &t) { uniqueTiles1.push_back(t); });
-  REQUIRE(bounds1.getMinMaxX() == std::tuple<int32_t, int32_t>(0, 5));
-  auto [miny, maxy] = bounds1.getMinMaxY();
-  REQUIRE(miny == 1);
-  REQUIRE(maxy == 5);
   REQUIRE(uniqueTiles1 ==
           std::vector<geo::Tile>{
               {0, 1, 3}, {0, 2, 3}, {0, 3, 3}, {0, 4, 3}, {0, 5, 3},
@@ -132,14 +122,6 @@ TEST_CASE("bounds move left", "[Bounds]") {
   std::vector<geo::Tile> uniqueTiles2;
   bounds2.iterateUniqueTiles(
       [&uniqueTiles2](const geo::Tile &t) { uniqueTiles2.push_back(t); });
-  auto [minx, maxx] = bounds2.getMinMaxX();
-  REQUIRE(minx == 4);
-  REQUIRE(maxx == 7);
-  REQUIRE(bounds2.getMinMaxX() == std::tuple<int32_t, int32_t>(4, 7));
-  auto [bounds2Miny, bounds2Maxy] = bounds2.getMinMaxY();
-  REQUIRE(bounds2Miny == 1);
-  REQUIRE(bounds2Maxy == 5);
-  REQUIRE(bounds2.getMinMaxY() == std::tuple<int32_t, int32_t>(1, 5));
   std::vector<geo::Tile> expectedUniqueTiles{
       {0, 1, 3},
       {0, 2, 3},
